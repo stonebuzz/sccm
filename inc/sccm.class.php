@@ -552,7 +552,7 @@ class PluginSccmSccm {
 
             $SXML->asXML($REP_XML.$PluginSccmSccmxml->device_id.".ocs");
 
-            Toolbox::logInFile('sccm', "Collect OK for deveice - ".$PluginSccmSccmxml->device_id." \n", true);
+            Toolbox::logInFile('sccm', "Collect OK for device - ".$PluginSccmSccmxml->device_id." \n", true);
             $task->addVolume(1);
          }
          $retcode = 1;
