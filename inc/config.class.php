@@ -98,6 +98,7 @@ class PluginSccmConfig extends CommonDBTM {
                      `sccmdb_dbname` VARCHAR(255) NULL,
                      `sccmdb_user` VARCHAR(255) NULL,
                      `sccmdb_password` VARCHAR(255) NULL,
+                     `sccm_collection_name` VARCHAR(255) NULL,
                      `inventory_server_url` VARCHAR(255) NULL,
                      `active_sync` tinyint NOT NULL default '0',
                      `verify_ssl_cert` tinyint NOT NULL default '0',
@@ -210,6 +211,11 @@ class PluginSccmConfig extends CommonDBTM {
                ]
             );
          }
+
+         if (!$DB->fieldExists($table, 'sccm_collection_name')) {
+            $migration->addField("glpi_plugin_sccm_configs", "sccm_collection_name", "varchar(255)");
+            $migration->migrationOneTable('glpi_plugin_sccm_configs');
+         }
       }
 
       return true;
@@ -253,6 +259,11 @@ class PluginSccmConfig extends CommonDBTM {
       echo "<tr class='tab_bg_1'>";
       echo "<td>".__("Username", "sccm")."</td><td>";
       echo Html::input('sccmdb_user', ['value' => $config->getField('sccmdb_user')]);
+      echo "</td></tr>\n";
+
+      echo "<tr class='tab_bg_1'>";
+      echo "<td>".__("SCCM configuration name", "sccm")." (Id: ".$config->getField('id').")</td><td>";
+      echo Html::input('sccm_config_name', ['value' => $config->getField('sccm_config_name')]);
       echo "</td></tr>\n";
 
       $password = $config->getField('sccmdb_password');

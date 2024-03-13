@@ -47,7 +47,7 @@ class PluginSccmSccm {
       echo __('Please, read the documentation before using that.', 'footprints');
    }
 
-   function getDevices($where = 0, $limit = 99999999) {
+   function getDevices($where = 0, $limit = 99999999, $collection_name = "") {
 
       $PluginSccmSccmdb = new PluginSccmSccmdb();
       $res = $PluginSccmSccmdb->connect();
@@ -55,8 +55,7 @@ class PluginSccmSccm {
          die;
       }
 
-      $query = self::getcomputerQuery();
-
+      $query = self::getcomputerQuery($collection_name);
       if ($where!=0) {
          $query.= " WHERE csd.MachineID = '" . $where . "'";
       }
@@ -484,7 +483,7 @@ class PluginSccmSccm {
 
       if ($PluginSccmConfig->getField('active_sync') == 1) {
 
-         $PluginSccmSccm->getDevices();
+         $PluginSccmSccm->getDevices($PluginSccmConfig->getField('sccm_collection_name'));
          Toolbox::logInFile('sccm', "getDevices OK \n", true);
 
          Toolbox::logInFile('sccm', "Generate XML start : "
@@ -525,8 +524,8 @@ class PluginSccmSccm {
       return $retcode;
    }
 
-   static function getcomputerQuery() {
-      return "SELECT csd.Description00 as \"CSD-Description\",
+   static function getcomputerQuery($collection_name = "") {
+      $request = "SELECT csd.Description00 as \"CSD-Description\",
       csd.Domain00 as \"CSD-Domain\",
       csd.Manufacturer00 as \"CSD-Manufacturer\",
       csd.Model00 as \"CSD-Model\",
@@ -569,6 +568,18 @@ class PluginSccmSccm {
       LEFT JOIN System_DATA sd ON csd.MachineID = sd.MachineID
       INNER JOIN v_R_System VrS ON csd.MachineID = VrS.ResourceID
       WHERE csd.MachineID is not null and csd.MachineID != ''";
+
+      if (!empty($collection_name))
+      {
+         $request .= " AND md.SystemName00 in (
+            SELECT FCM.Name
+            FROM v_FullCollectionMembership FCM INNER JOIN v_Collection COL
+            ON FCM.CollectionID = COL.CollectionID
+            WHERE col.name = '" . $collection_name . "'
+         )
+         ";
+      }
+
    }
 
 
@@ -584,7 +595,7 @@ class PluginSccmSccm {
       if ($PluginSccmConfig->getField('active_sync') == 1) {
          if ($res) {
 
-            $query = self::getcomputerQuery();
+            $query = self::getcomputerQuery($PluginSccmConfig->getField('sccm_collection_name'));
             $result = $PluginSccmSccmdb->exec_query($query);
 
             $tab = [];
